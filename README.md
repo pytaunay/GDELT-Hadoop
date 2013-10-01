@@ -1,4 +1,5 @@
 GDELT-Hadoop
+------------
 
 Sets of tools and examples to create a database within Hadoop with either Hive or Impala. Provides example queries with performance results on a 4 node cluster.
 

@@ -30,6 +30,10 @@ The script has 3 [R]equired arguments and two [O]ptional arguments:
 	- [O] A verbose option to obtain more output from the command (--verbose | -v)
 	- [O] A help message (--help | -h) 
 
+* skel/*.sql : Contains the skeleton of the Impala queries to create the aggregate query that will create the tables for historical data, daily updates, and aggregate data.
+The script gdelt_create.sh copies the skeleton files, then populates them with the variables specified at the beginning of the script. It then creates a single query
+file named "create_aggregate.sql", which is then passed to Impala.
+
 Usage
 -----------------------------
 1. Edit the file gdelt_create.sh to reflect your local Hadoop cluster configuration
@@ -53,5 +57,8 @@ List of variables to edit (\* denotes HIST, DU, or AGG, which refers to HISToric
 ./gdelt_create.sh
 ```
 
-3. A log file will be created at the location ```shell $LOGDIR/gdelt_create.log.YYYYMMDD.HHmmss```. You can track its progress using ```shell tail -f $LOGDIR/gdelt_create.log.YYYYMMDD.HHmmss```.
+3. A log file will be created at the location ```$LOGDIR/gdelt_create.log.YYYYMMDD.HHmmss```. You can track its progress using 
+```shell 
+tail -f $LOGDIR/gdelt_create.log.YYYYMMDD.HHmmss
+```
 

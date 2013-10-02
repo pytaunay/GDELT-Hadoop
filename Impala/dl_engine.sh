@@ -25,7 +25,8 @@ usage() {
 	echo "Required arguments:"
 	echo " --targetdir | -t	: target location to download the files"
 	echo " --datadir | -d	: target location to extract the files"
-	echo " --url	 | -u		: URL of the target website"
+	echo " --url	 | -u	: URL of the target website"
+	echo " --log		: location of the log file"
 	echo " Optional arguments "
 	echo " --nretry | -r	: number of retries before dropping a download (default=5,limit=20)"
 	echo " --nproc | -p		: number of processes to spawn when unzipping the files (default=1,limit=16)"
@@ -36,7 +37,7 @@ usage() {
 ##########################
 ## Parse the input line ##
 ##########################
-TMP=$(getopt -o t:d:u:r:p:vh --long targetdir:,datadir:,url:,nretry:,nproc:,verbose,help -n '$0' -- "$@")
+TMP=$(getopt -o t:d:u:r:p:vh --long log:,targetdir:,datadir:,url:,nretry:,nproc:,verbose,help -n '$0' -- "$@")
 
 if [ $? -ne 0 ];
 then
@@ -46,7 +47,7 @@ fi
 
 eval set -- "$TMP"
 
-if [[ $# -lt 2 || $# -gt 13 ]];
+if [[ $# -lt 2 || $# -gt 15 ]];
 then
 	echo "ERROR Wrong number of arguments"
 	usage
@@ -115,6 +116,9 @@ do
 				fi
 			fi	
 			shift 2;;
+		--log)
+			LOG=$2
+			shift 2;;
 		--)
 			shift
 			break;;
@@ -124,13 +128,16 @@ done
 ## Output data if verbose
 if [ $VERBOSE -eq 1 ];
 then
-	echo "INFO Options chosen"
-	echo "INFO Target directory for zip files: $TDIR"
-	echo "INFO Target directory for data files: $DDIR"
-	echo "INFO Target URL: $URL"
-	echo "INFO Number of processes for unzip: $NP"
-	echo "INFO Number of retries: $NR"
-	echo "INFO Verbose mode: $VERBOSE"
+	echo "------------------------------------" | tee -a $LOG
+	echo "DL ENGINE" | tee -a $LOG
+	echo "INFO Options chosen" | tee -a $LOG
+	echo "INFO Target directory for zip files: $TDIR" | tee -a $LOG
+	echo "INFO Target directory for data files: $DDIR" | tee -a $LOG
+	echo "INFO Target URL: $URL" | tee -a $LOG
+	echo "INFO Number of processes for unzip: $NP" | tee -a $LOG
+	echo "INFO Number of retries: $NR" | tee -a $LOG
+	echo "INFO Verbose mode: $VERBOSE" | tee -a $LOG
+	echo "------------------------------------" | tee -a $LOG
 fi
 
 ##########################################
@@ -142,7 +149,7 @@ then
 	OUT=$?
 	if ! [[ $OUT -eq 0 ]];
 	then
-		echo "ERROR Could not create $TDIR (Error $OUT -- Wrong permissions ?)"
+		echo "ERROR Could not create $TDIR (Error $OUT -- Wrong permissions ?)" | tee -a $LOG
 		exit 1;
 	fi	
 fi
@@ -153,7 +160,7 @@ then
 	OUT=$?
 	if ! [[ $? -eq 0 ]];
 	then
-		echo "ERROR Could not create $DDIR (Error $OUT -- Wrong permissions ?)"
+		echo "ERROR Could not create $DDIR (Error $OUT -- Wrong permissions ?)" | tee -a $LOG
 		exit 1;
 	fi	
 fi
@@ -161,14 +168,14 @@ fi
 ########################
 ## Download the files ##
 ########################
-echo "Downloading the files at $URL..."
-wget -r -q -nd -nc --no-parent --reject="index.html*" -P $TDIR -e robots=off $URL
-echo "...done"
+echo "Downloading the files at $URL..." | tee -a $LOG
+wget -r -nd -nc --no-parent --reject="index.html*" -P $TDIR -e robots=off $URL -a $LOG
+echo "...done" | tee -a $LOG
 
 #######################################################
 ## Test that the zip files were downloaded correctly ##
 #######################################################
-echo "Checking integrity of the compressed files..."
+echo "Checking integrity of the compressed files, patience..." | tee -a $LOG
 for file in `ls $TDIR`; do
 	CORRUPT=1
 	TRY=1
@@ -177,29 +184,31 @@ for file in `ls $TDIR`; do
 		unzip -tq $TDIR/$file &> /dev/null
 		if [ $? -eq 0 ]; then
 			CORRUPT=0
-			echo "INFO: $file OK"
+			echo "INFO $file OK" | tee -a $LOG
 		else
 			CORRUPT=1
-			echo "ERROR: $file corrupted, re-downloading [ $TRY / $NR retries ]"
+			echo "ERROR $file corrupted, re-downloading [ $TRY / $NR retries ]" | tee -a $LOG
 			rm $TDIR/$file
-			wget -r -q --no-parent --reject="index.html*" -nd -nc -e robots=off -P $TDIR $URL/$file 
+			wget -r --no-parent --reject="index.html*" -nd -nc -e robots=off -P $TDIR $URL/$file -a $LOG 
 		fi
 
 		if [ $TRY -ge $NR ]; then
-			echo "ERROR $file: too many retries, skipping..."
+			echo "ERROR $file: too many retries, skipping..." | tee -a $LOG
 			rm $TDIR/$file
 		fi	
 	done
 done	
-echo "...done"
+echo "...done" | tee -a $LOG
 
 #####################
 ## Unzip the files ##		
 #####################
-echo "Unzipping the compressed files..."
+echo "Unzipping the compressed files..." | tee -a $LOG
 # Replace any unsafe (i.e. special) characters to be able to parse with sed
 SAFEDIR=$(echo $TDIR | sed 's \([]\#\%\@\*$\/&[]\) \\\1 g')
 # Unzip the files w/ 8 processes in parallel
 ls $TDIR | awk 'NR > 1 {print $1}' |  sed "s/^/$SAFEDIR\//g"| xargs -n 1 -P $NP unzip -q -d $DDIR/
-echo "...done"
+echo "...done" | tee -a $LOG
+
+exit 0
 

@@ -1,4 +1,4 @@
-Cloudera Impala data loading and usage
+Using Cloudera Impala with the GDELT database  
 --------------------------------------
 This directory contains:
 - Files to create the aggregate database made of the historical data files and of the daily updates, using Parquet compression
@@ -6,7 +6,7 @@ This directory contains:
 
 Files
 -----------------------------
-* gdelt_create.sh : calls the download engine to get all the historical and daily updates files, uploads them to HDFS, and populates the Impala database.
+* gdelt_create.sh : calls the download engine to retrieve all the historical and daily updates files, uploads them to HDFS, and populates the Impala database.
 
 * dl_engine.sh : a Bash download engine that is used to pull all the information from the servers at UT Dallas.
 The engine assumes that the files are stored as ZIP files (.zip extension) on the server, and are all located under the same remote directory.
@@ -20,7 +20,7 @@ The engine has 3 [R]equired arguments and 4 [O]ptional arguments:
 	- [O] A verbose option to obtain more output from the command (--verbose | -v)
 	- [O] A help message (--help | -h) 
 
-The engine will check that the files are valid once downloaded, and will retry to download them if it failed. 
+The engine will check that the files are valid once downloaded, and will try to download them again if it failed. 
 
 * hdfs_upload.sh : a Bash script to upload all the unzipped files to HDFS
 The script has 3 [R]equired arguments and two [O]ptional arguments:
@@ -31,18 +31,18 @@ The script has 3 [R]equired arguments and two [O]ptional arguments:
 	- [O] A help message (--help | -h) 
 
 * skel/*.sql : Contains the skeleton of the Impala queries to create the aggregate query that will create the tables for historical data, daily updates, and aggregate data.
-The script gdelt_create.sh copies the skeleton files, then populates them with the variables specified at the beginning of the script. It then creates a single query
-file named "create_aggregate.sql", which is then passed to Impala.
+The script gdelt_create.sh copies the skeleton files to temporary SQL files, then populates them with the variables specified at the beginning of the script. It then creates a single query
+file named "create_query.sql", which is then passed to Impala.
 
 Usage
 -----------------------------
 1. Edit the file gdelt_create.sh to reflect your local Hadoop cluster configuration
 List of variables to edit (\* denotes HIST, DU, or AGG, which refers to HISTorical files, Daily Updates, or AGGregated data made of both):
-	- LOG: log file directory location
-	- NRETRY: Number of download retries before a file is skipped 
-	- NPROC: Number of processes used to unzip the data files
+	- LOGDIR: log file directory location.
+	- NRETRY: Number of download retries before a file is skipped.
+	- NPROC: Number of processes used to unzip the data files.
 	- IMPALA_HOST: Host on which the Impala daemon is running. This should be a data node.
-	- KERBEROS: Flag to set Kerberos authentication for the Impala scripts
+	- KERBEROS: Flag to set Kerberos authentication for the Impala script.
 	- TMPDIR: A temporary directory is set to save intermediary Impala query files. It is removed once the script has been executed.
 	- DB_NAME: The database name to use. If it does not exist, it will be created.
 	- DB_LOC: The location of the database on HDFS.
@@ -57,7 +57,7 @@ List of variables to edit (\* denotes HIST, DU, or AGG, which refers to HISToric
 ./gdelt_create.sh
 ```
 
-3. A log file will be created at the location ```$LOGDIR/gdelt_create.log.YYYYMMDD.HHmmss```. You can track its progress using 
+3. A log file will be created at the location ```$LOGDIR/gdelt_create.log.YYYYMMDD.HHmmss```. You can track the progress of the script using 
 ```shell 
 tail -f $LOGDIR/gdelt_create.log.YYYYMMDD.HHmmss
 ```

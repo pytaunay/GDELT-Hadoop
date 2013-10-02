@@ -62,3 +62,10 @@ List of variables to edit (\* denotes HIST, DU, or AGG, which refers to HISToric
 tail -f $LOGDIR/gdelt_create.log.YYYYMMDD.HHmmss
 ```
 
+Notes
+-----------------------------
+* This has been tested with Impala v1.1.1  
+* Possible issues include:
+	- Directory permissions not set up correctly
+	- Kerberos authentication errors
+

@@ -10,7 +10,7 @@ Files
 
 * dl_engine.sh : a Bash download engine that is used to pull all the information from the servers at UT Dallas.
 The engine assumes that the files are stored as ZIP files (.zip extension) on the server, and are all located under the same remote directory.
-The engine has 3 [R]equired arguments and 4 [O]ptional arguments:
+The engine has 4 [R]equired arguments and 4 [O]ptional arguments:
 	- [R] The target directory in which to download the zip files (--targetdir | -t)
 	- [R] The data directory in which the zip files will be extracted (--datadir | -d)
 	- [R] The remote URL from where to download the zip files (--url | -u)
@@ -37,7 +37,7 @@ file named "create_query.sql", which is then passed to Impala.
 Usage
 -----------------------------
 1. Edit the file gdelt_create.sh to reflect your local Hadoop cluster configuration
-List of variables to edit (\* denotes HIST, DU, or AGG, which refers to HISTorical files, Daily Updates, or AGGregated data made of both):
+List of variables to edit (\* denotes HIST, DU, or AGG, which refers to HISTorical files, Daily Updates, or AGGregated data):
 	- LOGDIR: log file directory location.
 	- NRETRY: Number of download retries before a file is skipped.
 	- NPROC: Number of processes used to unzip the data files.

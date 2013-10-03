@@ -79,20 +79,18 @@ done
 ## Output data if verbose
 if [ $VERBOSE -eq 1 ];
 then
-	echo "------------------------------------" | tee -a $LOG
 	echo "HDFS_USAGE" | tee -a $LOG
 	echo "INFO Options chosen" | tee -a $LOG
 	echo "INFO Local directory to upload: $LDIR" |  tee -a $LOG
 	echo "INFO HDFS target directory: $HDFSDIR" | tee -a $LOG
 	echo "INFO Verbose mode: $VERBOSE" | tee -a $LOG
-	echo "------------------------------------" | tee -a $LOG
 fi	
 
 ## Upload TSV files on HDFS
 # Test if the directory exists
 hadoop fs -test -e $HDFSDIR
 OUT=$?
-echo "Uploading historical files from local ($LDIR) to HDFS ($HDFSDIR) ..." | tee -a $LOG
+echo "Uploading files from local ($LDIR) to HDFS ($HDFSDIR) ..." | tee -a $LOG
 if ! [[ $OUT -eq 0 ]];
 then
 	# If it does not, attempt at creating it and deal with error

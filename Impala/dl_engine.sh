@@ -128,7 +128,6 @@ done
 ## Output data if verbose
 if [ $VERBOSE -eq 1 ];
 then
-	echo "------------------------------------" | tee -a $LOG
 	echo "DL ENGINE" | tee -a $LOG
 	echo "INFO Options chosen" | tee -a $LOG
 	echo "INFO Target directory for zip files: $TDIR" | tee -a $LOG
@@ -137,7 +136,6 @@ then
 	echo "INFO Number of processes for unzip: $NP" | tee -a $LOG
 	echo "INFO Number of retries: $NR" | tee -a $LOG
 	echo "INFO Verbose mode: $VERBOSE" | tee -a $LOG
-	echo "------------------------------------" | tee -a $LOG
 fi
 
 ##########################################

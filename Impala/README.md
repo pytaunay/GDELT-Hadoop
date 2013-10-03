@@ -66,6 +66,8 @@ Notes
 -----------------------------
 * This has been tested with Impala v1.1.1  
 * Possible issues include:
-	- Directory permissions not set up correctly
-	- Kerberos authentication errors
+	- Directory permissions not set up correctly.
+	- Kerberos authentication errors.
+	- If the directory in which the tables are stored are not empty, query results will be incorrect.
 
+* Using partitioning can improve result times, as Impala will only load the required files. Only partitioning by year has been implemented so far. Other partitions can be considered, such as year AND month, or actors.

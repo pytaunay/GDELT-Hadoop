@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Name: dl_engine.sh
+# Author: Pierre-Yves Taunay (py.taunay@psu.edu)
+# Description:
 # This script is a download engine for the GDELT database  
 # Required arguments:
 # --targetdir | -t	: target location to download the files

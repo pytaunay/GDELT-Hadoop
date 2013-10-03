@@ -34,6 +34,9 @@ The script has 3 [R]equired arguments and two [O]ptional arguments:
 The script gdelt_create.sh copies the skeleton files to temporary SQL files, then populates them with the variables specified at the beginning of the script. It then creates a single query
 file named "create_query.sql", which is then passed to Impala.
 
+* skel/daily_update.skel.sh : Contains the skeleton of the daily_update.sh script which can be used to update the aggregate table if it is outdated. daily_update.sh is created 
+during the execution of gdelt_create.sh, and is then populated with correct variables.
+
 Usage
 -----------------------------
 1. Edit the file gdelt_create.sh to reflect your local Hadoop cluster configuration
@@ -71,3 +74,9 @@ Notes
 	- If the directory in which the tables are stored are not empty, query results will be incorrect.
 
 * Using partitioning can improve result times, as Impala will only load the required files. Only partitioning by year has been implemented so far. Other partitions can be considered, such as year AND month, or actors.
+Partitioning is VERY expensive when inserting data during the first creation of the aggregate table. 
+
+TODO
+-----------------------------
+* Add partitioning by YEAR for both gdelt_create and daily_update
+

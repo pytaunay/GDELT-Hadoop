@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Name: gdelt_create.sh
-# Author: Pierre-Yves Taunay (py.taunay@psu.edu)
+# Author: Pierre-Yves Taunay (py [dot] taunay [at] psu [dot] edu)
 # Description: sets up the environment for downloading the GDELT database, uploading it to HDFS, and setting up
 # an Impala database with or without partitioning.
 

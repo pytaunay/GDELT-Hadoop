@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Name: daily_update.sh
-# Author: Pierre-Yves Taunay (py.taunay@psu.edu)
+# Author: Pierre-Yves Taunay (py [dot] taunay [at] psu [dot] edu)
 # Description: this script compares the last update date in the GDELT Impala database to yesterday's date.
 # If the dates differ, then the database is outdated. Necessary files are then downloaded and added to the database. 
 

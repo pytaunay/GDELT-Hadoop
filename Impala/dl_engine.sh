@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Name: dl_engine.sh
-# Author: Pierre-Yves Taunay (py.taunay@psu.edu)
+# Author: Pierre-Yves Taunay (py [dot] taunay [at] psu [dot] edu)
 # Description:
 # This script is a download engine for the GDELT database  
 # Required arguments:

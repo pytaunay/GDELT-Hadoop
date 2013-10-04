@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Name: hdfs_upload.sh
-# Author: Pierre-Yves Taunay (py.taunay@psu.edu)
+# Author: Pierre-Yves Taunay (py [dot] taunay [at] psu [dot] edu)
 # Description:
 # This script uploads downloaded files from the specified local directory
 # to the specified HDFS directory

@@ -10,7 +10,7 @@
 ##########################################################
 ###################
 ## Log directory location
-LOGDIR=log
+LOGDIR=/path/to/a/log/directory
 
 ###################
 ## Download setups
@@ -24,13 +24,13 @@ NPROC=1
 # Location of the Impala daemon
 IMPALA_HOST=myimpalahost
 # Kerberos authentication ? 1 = Yes, 0 = No
-KERBEROS=0
+KERBEROS=1
 # Temporary directory for the intermediate SQL files
 TMPDIR=/tmp/gdelt_create
 # Database name to use
-DB_NAME=mydatabase
+DB_NAME=mydatabasename
 # Database location
-DB_LOC=/hdfs/path/to/database/root/dir
+DB_LOC=/DB/path/on/HDFS
 # Use partioning by year ? 
 # Partitioning by year is more resource intensive when doing INSERTs but results
 # in faster queries when considering each year separately.
@@ -43,29 +43,29 @@ PARTITION=0
 # Remote location of the historical backfiles
 HIST_URL=http://gdelt.utdallas.edu/data/backfiles/
 # Local location of the zip files for the historical backfiles
-HIST_TDIR=/local/path/to/historical/zip
+HIST_TDIR=/local/path/to/historical/zipfiles
 # Local location of the unzipped tsv files for the historical backfiles
-HIST_DDIR=/local/path/to/historical/unzip
+HIST_DDIR=/local/path/to/historical/tsvfiles
 # HDFS location of the unzipped tsv files for the historical backfiles
-HIST_HDFSDIR=/hdfs/path/to/historical
+HIST_HDFSDIR=/hdfs/path/to/historical/tsvfiles
 # Table name in the Impala database. If the table exists, it will be dropped !
 HIST_TBNAME=gdelt_historical_raw
 
 # Remote location of the daily updates files 
 DU_URL=http://gdelt.utdallas.edu/data/dailyupdates/
 # Local location of the zip files for the daily updates 
-DU_TDIR=/local/path/to/dailyupdates/zip
+DU_TDIR=/local/path/to/dailyupdates/zipfiles
 # Local location of the unzipped tsv files for the daily updates files
-DU_DDIR=/local/path/to/dailyupdates/unzip
+DU_DDIR=/local/path/to/dailyupdates/tsvfiles
 # HDFS location of the unzipped tsv files for the daily updates files 
-DU_HDFSDIR=/hdfs/path/to/dailyupdates
+DU_HDFSDIR=/hdfs/path/to/dailyupdates/tsvfiles
 # Table name in the Impala database. If the table exists, it will be dropped !
 DU_TBNAME=gdelt_dailyupdates_raw
 
 # HDFS location of the aggregated Impala table
-AGG_HDFSDIR=/hdfs/path/to/aggregated
+AGG_HDFSDIR=/hdfs/path/to/aggregated_table
 # Table name in the Impala database for the aggregated data (historical + daily updates). If the table exists, it will be dropped !
-AGG_TBNAME=GDELT
+AGG_TBNAME=gdelt
 
 ##########################################################
 ## 		 SCRIPT STARTS HERE 			##
@@ -90,7 +90,7 @@ touch $LOG
 ## Historical data set raw data ##
 ##################################
 # Download the data
-#./dl_engine.sh --targetdir $HIST_TDIR --datadir $HIST_DDIR --url $HIST_URL --nretry $NRETRY --nproc $NPROC -v --log $LOG 
+./dl_engine.sh --targetdir $HIST_TDIR --datadir $HIST_DDIR --url $HIST_URL --nretry $NRETRY --nproc $NPROC -v --log $LOG 
 OUT=$?
 if ! [[ $OUT -eq 0 ]];
 then
@@ -117,7 +117,7 @@ fi
 #####################################
 # Download the data
 echo "------------------------------------" | tee -a $LOG
-#./dl_engine.sh --targetdir $DU_TDIR --datadir $DU_DDIR --url $DU_URL --nretry $NRETRY --nproc $NPROC -v --log $LOG
+./dl_engine.sh --targetdir $DU_TDIR --datadir $DU_DDIR --url $DU_URL --nretry $NRETRY --nproc $NPROC -v --log $LOG
 OUT=$?
 if ! [[ $OUT -eq 0 ]];
 then
@@ -153,13 +153,13 @@ then
 	mkdir -p $TMPDIR &> /dev/null
 fi	
 
-cp skel/hist.skel $TMPDIR/create_historical.sql
+cp skel/hist.skel.sql $TMPDIR/create_historical.sql
 SAFEDIR=$(echo $HIST_HDFSDIR | sed 's \([]\#\%\@\*$\/&[]\) \\\1 g')
 sed -i "s/DROP TABLE IF EXISTS/& $HIST_TBNAME/" $TMPDIR/create_historical.sql
 sed -i "s/CREATE EXTERNAL TABLE/& $HIST_TBNAME/" $TMPDIR/create_historical.sql
 sed -i "s/LOCATION/& \'$SAFEDIR\'/" $TMPDIR/create_historical.sql
 
-cp skel/daily.skel $TMPDIR/create_dailyupdates.sql
+cp skel/daily.skel.sql $TMPDIR/create_dailyupdates.sql
 SAFEDIR=$(echo $DU_HDFSDIR | sed 's \([]\#\%\@\*$\/&[]\) \\\1 g')
 sed -i "s/DROP TABLE IF EXISTS/& $DU_TBNAME/" $TMPDIR/create_dailyupdates.sql
 sed -i "s/CREATE EXTERNAL TABLE/& $DU_TBNAME/" $TMPDIR/create_dailyupdates.sql
@@ -167,7 +167,7 @@ sed -i "s/LOCATION/& \'$SAFEDIR\'/" $TMPDIR/create_dailyupdates.sql
 
 if [ $PARTITION -eq 0 ];
 then
-	cp skel/aggregate.skel $TMPDIR/create_aggregate.sql
+	cp skel/aggregate.skel.sql $TMPDIR/create_aggregate.sql
 	SAFEDIR=$(echo $AGG_HDFSDIR | sed 's \([]\#\%\@\*$\/&[]\) \\\1 g')
 	sed -i "s/DROP TABLE IF EXISTS/& $AGG_TBNAME/" $TMPDIR/create_aggregate.sql
 	sed -i "s/CREATE TABLE LIKE STORED AS PARQUETFILE LOCATION/CREATE TABLE $AGG_TBNAME LIKE $DU_TBNAME STORED AS PARQUETFILE LOCATION \'$SAFEDIR\'/" $TMPDIR/create_aggregate.sql
@@ -176,6 +176,19 @@ then
 
 	sed -i "s/^FROM/& $HIST_TBNAME/" $TMPDIR/create_aggregate.sql
 	sed -i "s/ FROM/& $DU_TBNAME/" $TMPDIR/create_aggregate.sql
+else
+	cp skel/aggregate_partition.skel.sql $TMPDIR/create_aggregate.sql
+	SAFEDIR=$(echo $AGG_HDFSDIR | sed 's \([]\#\%\@\*$\/&[]\) \\\1 g')
+	sed -i "s/DROP TABLE IF EXISTS/& $AGG_TBNAME/" $TMPDIR/create_aggregate.sql
+	sed -i "s/CREATE TABLE/CREATE TABLE $AGG_TBNAME/" $TMPDIR/create_aggregate.sql
+	sed -i "s/LOCATION/LOCATION \'$SAFEDIR\'/" $TMPDIR/create_aggregate.sql
+
+	sed -i "s/INSERT OVERWRITE/INSERT OVERWRITE $AGG_TBNAME/" $TMPDIR/create_aggregate.sql
+	sed -i "s/INSERT INTO/INSERT INTO $AGG_TBNAME/" $TMPDIR/create_aggregate.sql
+
+# Note: not very clean way to distinguish between daily updates and historical
+	sed -i "s/^FROM/& $HIST_TBNAME/" $TMPDIR/create_aggregate.sql
+	sed -i "s/^ FROM/& $DU_TBNAME/" $TMPDIR/create_aggregate.sql
 fi	
 
 # Create the query for Impala

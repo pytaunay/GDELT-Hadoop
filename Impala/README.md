@@ -35,7 +35,7 @@ The script gdelt_create.sh copies the skeleton files to temporary SQL files, the
 file named "create_query.sql", which is then passed to Impala.
 
 * skel/daily_update.skel.sh : Contains the skeleton of the daily_update.sh script which can be used to update the aggregate table if it is outdated. daily_update.sh is created 
-during the execution of gdelt_create.sh, and is then populated with correct variables.
+during the execution of gdelt_create.sh, and is then populated with the correct variables.
 
 Usage
 -----------------------------
@@ -46,6 +46,7 @@ List of variables to edit (\* denotes HIST, DU, or AGG, which refers to HISToric
 	- NPROC: Number of processes used to unzip the data files.
 	- IMPALA_HOST: Host on which the Impala daemon is running. This should be a data node.
 	- KERBEROS: Flag to set Kerberos authentication for the Impala script.
+	- PARTITION: Flag to set partitioning of the database by year
 	- TMPDIR: A temporary directory is set to save intermediary Impala query files. It is removed once the script has been executed.
 	- DB_NAME: The database name to use. If it does not exist, it will be created.
 	- DB_LOC: The location of the database on HDFS.
@@ -65,9 +66,16 @@ List of variables to edit (\* denotes HIST, DU, or AGG, which refers to HISToric
 tail -f $LOGDIR/gdelt_create.log.YYYYMMDD.HHmmss
 ```
 
+4. Once the script has finished, a new script daily_update.sh will be created in the current directory. This script is already populated with all the info pertaining to the
+database, tables, and flags. You can then run the script daily_update.sh at any point, as it will compare the data set last update to the current update on the UT Dallas server,
+and decide on what files to download and push into the aggregated table. To run the script, simply type in the command line:
+```shell
+./daily_update.sh
+```
+
 Notes
 -----------------------------
-* This has been tested with Impala v1.1.1  
+* This has been tested with Impala v1.1.1 on the CDH distribution v.4.4.0 patch 39 
 * Possible issues include:
 	- Directory permissions not set up correctly.
 	- Kerberos authentication errors.
@@ -76,7 +84,4 @@ Notes
 * Using partitioning can improve result times, as Impala will only load the required files. Only partitioning by year has been implemented so far. Other partitions can be considered, such as year AND month, or actors.
 Partitioning is VERY expensive when inserting data during the first creation of the aggregate table. 
 
-TODO
------------------------------
-* Add partitioning by YEAR for both gdelt_create and daily_update
 

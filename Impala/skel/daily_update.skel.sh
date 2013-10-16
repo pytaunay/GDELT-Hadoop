@@ -149,12 +149,30 @@ echo "...done" | tee -a $LOG
 
 ## Insert records into the database 
 echo "-----------------------------------" | tee -a $LOG
+echo "Creating the query file to insert records ..." | tee -a $LOG
+if [ $PARTITION -eq 0 ];
+then
+	echo "USE $DB_NAME;" > daily_insert.sql
+	echo "REFRESH $DU_TBNAME;" >> daily_insert.sql
+	echo "INSERT INTO $AGG_TBNAME SELECT * FROM $DU_TBNAME WHERE dateadded > $DB_DATE AND dateadded <= $YTD_DATE;" >> daily_insert.sql
+else
+	cp skel/daily.skel.sql daily_insert.sql	
+	sed -i "s/USE/& $DB_NAME/" daily_insert.sql	
+	sed -i "s/REFRESH/& $DU_TBNAME/" daily_insert.sql
+	sed -i "s/INSERT INTO/& $AGG_TBNAME/" daily_insert.sql
+	sed -i "s/FROM/& $DU_TBNAME/" daily_insert.sql
+	echo "WHERE dateadded > $DB_DATE AND dateadded <= $YTD_DATE;" >> daily_insert.sql
+fi
+echo "...done" | tee -a $LOG
+
+
+echo "-----------------------------------" | tee -a $LOG
 echo "Insert records in the aggregate database ..." | tee -a $LOG
 if [ $KERBEROS -eq 1 ];
 then
-	impala-shell -k -i $IMPALA_HOST -q "USE $DB_NAME; INSERT INTO $AGG_TBNAME SELECT * FROM $DU_TBNAME WHERE dateadded > $DB_DATE AND dateadded <= $YTD_DATE;"  | tee -a $LOG
+	impala-shell -k -i $IMPALA_HOST -f daily_insert.sql &>> $LOG
 else	
-	impala-shell -i $IMPALA_HOST -q "USE $DB_NAME; INSERT INTO $AGG_TBNAME SELECT * FROM $DU_TBNAME WHERE dateadded > $DB_DATE AND dateadded <= $YTD_DATE;"  | tee -a $LOG
+	impala-shell -i $IMPALA_HOST -f daily_insert.sql &>> $LOG
 fi	
 echo "...done" | tee -a $LOG
 
